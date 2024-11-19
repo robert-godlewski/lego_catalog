@@ -1,3 +1,4 @@
 Pipfile.lock
 *.csv
 db.sqlite3
+LegoDbMap.pdf

@@ -28,9 +28,41 @@ def _getLegoTheme(name: str, group_id: int) -> dict:
         "name": theme_data[1]
     }
 
+# Saving and creating lego_series data as a hash
+def _getLegoSeries(name: str, theme_id: int) -> dict:
+    cur.execute("INSERT OR IGNORE INTO lego_series (name, theme_id) VALUES ( ?, ? )", (name, theme_id,))
+    cur.execute("SELECT * FROM lego_series WHERE name = ? ", (name,))
+    series_data = cur.fetchone()
+    return {
+        "id": series_data[0],
+        "name": series_data[1]
+    }
+
+# Saving and creating lego_kit data as a hash
+def _getLegoKit(id: int, name: str, number_duplicates: int, complete_kit: bool, for_sale: bool, box_location: str, notes: str, series_id: int) -> dict:
+    if complete_kit:
+        comp_num = 1
+    else:
+        comp_num = 0
+    if for_sale:
+        sale_num = 1
+    else:
+        sale_num = 0
+    cur.execute("INSERT OR IGNORE INTO lego_kit (id, name, number_duplicates, complete_kit, for_sale, box_location, notes, series_id) VALUES ( ?, ?, ?, ?, ?, ?, ?, ? )", (id, name, number_duplicates, comp_num, sale_num, box_location, notes, series_id,))
+    cur.execute("SELECT * FROM lego_kit WHERE id = ? ", (id,))
+    kit_data = cur.fetchone()
+    print(kit_data)
+    return {
+        "id": kit_data[0],
+        "name": kit_data[1],
+        # Add in more if needed
+    }
+
 try:
     cur.execute("SELECT * FROM lego_group")
-    print("lego_group already exists.")
+    cur.execute("SELECT * FROM lego_theme")
+    cur.execute("SELECT * FROM lego_series")
+    print("lego_group, lego_theme, and lego_series tables exist.")
 except sqlite3.OperationalError:
     print("Please run: python create_db.py")
     print("Unable to run the program.")
@@ -62,9 +94,12 @@ if not db_error:
         theme_name = ""
         # Determines if the theme is the same throughout the data upload or not
         has_same_theme = False
-        # Might need to get more sections to add in later for Theme and Series
         series = {}
-        #....More variables here if needed....
+        series_name = ""
+        # Determines if the series is the same throughout the data upload or not
+        has_same_series = False
+        # kit = {}
+        # max_len = 11 # Represents the maximum length for each row
         data = np.delete(data_raw, 0, 0)
         # print(type(data))
         # print(data)
@@ -83,28 +118,51 @@ if not db_error:
                         theme_prompt = "What is the theme" + prompt_base
                         theme_name = input(theme_prompt)
                         has_same_theme = True
+                    if len(header) < 9:
+                        if not has_same_series:
+                            # We need to actually define the series since it's not with the data
+                            series_prompt = "What is the series" + prompt_base
+                            series_name = input(series_prompt)
+                            has_same_series = True
+                    else:
+                        series_name = data[row][0]
+                        # check for others here
                 else:
                     theme_name = data[row][0]
-                    # series_name = data[row][1]
+                    series_name = data[row][1]
                     # check for others here
             else:
                 group_name = data[row][0]
                 theme_name = data[row][1]
-                # series_name = data[row][2]
+                series_name = data[row][2]
+            # pos = len(header)-max_len
+            # print(pos)
+            # if group_name == "" and pos >= 0:
+            #     group_name = data[row][pos]
+            # if theme_name == "" and pos+1 >= 0:
+            #     theme_name = data[row][pos+1]
+            # if series_name == "" and pos+2 >= 0:
+            #     series_name = data[row][pos+2]
             # print(group_name)
             if "id" not in group:
                 group = _getLegoGroup(group_name)
-            print(theme_name)
+            # print(theme_name)
             if "id" not in theme:
                 theme = _getLegoTheme(theme_name, group["id"])
+            print(series_name)
+            if "id" not in series:
+                series = _getLegoSeries(series_name, theme["id"])
             print(f"Lego Group = {group}")
             print(f"Lego Theme = {theme}")
-            # Need the series, kit, and parts here
+            print(f"Lego Series = {series}")
+            # Need the kit and parts here
             # Clearing variables that change
             if not has_same_group:
                 group = {}
             if not has_same_theme:
                 theme = {}
+            if not has_same_series:
+                series = {}
     except:
         print("There is nothing to upload here.")
 else:

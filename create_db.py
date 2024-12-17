@@ -71,7 +71,7 @@ except sqlite3.OperationalError:
         # Might need to fix this actually
         # * complete_kit and for_sale should be a boolean
         cur.execute("""CREATE TABLE IF NOT EXISTS lego_kit (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id INTEGER PRIMARY KEY,
                     name TEXT UNIQUE,
                     number_duplicates INTEGER DEFAULT 1,
                     complete_kit INTEGER DEFAULT 0,

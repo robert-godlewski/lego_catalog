@@ -99,13 +99,15 @@ if not db_error:
         # Determines if the series is the same throughout the data upload or not
         has_same_series = False
         # kit = {}
-        # max_len = 11 # Represents the maximum length for each row
         data = np.delete(data_raw, 0, 0)
         # print(type(data))
         # print(data)
         # Need to go through each piece of data and add it to the database
         for row in range(len(data)-1):
             print(f"row {row} = {data[row]}")
+            column_i = 0 # use to keep track of the column index to save and add in the db
+            # For all spreadsheets neet to split out missing parts from the notes
+            # This will adjust the maximum number of columns to 12
             if len(header) < 11:
                 if not has_same_group:
                     # We need to actually define the group since it's not with the data
@@ -124,32 +126,19 @@ if not db_error:
                             series_prompt = "What is the series" + prompt_base
                             series_name = input(series_prompt)
                             has_same_series = True
-                    else:
-                        series_name = data[row][0]
-                        # check for others here
-                else:
-                    theme_name = data[row][0]
-                    series_name = data[row][1]
-                    # check for others here
-            else:
-                group_name = data[row][0]
-                theme_name = data[row][1]
-                series_name = data[row][2]
-            # pos = len(header)-max_len
-            # print(pos)
-            # if group_name == "" and pos >= 0:
-            #     group_name = data[row][pos]
-            # if theme_name == "" and pos+1 >= 0:
-            #     theme_name = data[row][pos+1]
-            # if series_name == "" and pos+2 >= 0:
-            #     series_name = data[row][pos+2]
-            # print(group_name)
+            if not has_same_group and group_name == "":
+                group_name = data[row][column_i]
+                column_i += 1
             if "id" not in group:
                 group = _getLegoGroup(group_name)
-            # print(theme_name)
+            if not has_same_theme and theme_name == "":
+                theme_name = data[row][column_i]
+                column_i += 1
             if "id" not in theme:
                 theme = _getLegoTheme(theme_name, group["id"])
-            print(series_name)
+            if not has_same_series and series_name == "":
+                series_name = data[row][column_i]
+                column_i += 1
             if "id" not in series:
                 series = _getLegoSeries(series_name, theme["id"])
             print(f"Lego Group = {group}")
@@ -159,10 +148,13 @@ if not db_error:
             # Clearing variables that change
             if not has_same_group:
                 group = {}
+                group_name = ""
             if not has_same_theme:
                 theme = {}
+                theme_name = ""
             if not has_same_series:
                 series = {}
+                series_name = ""
     except:
         print("There is nothing to upload here.")
 else:

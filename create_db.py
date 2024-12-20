@@ -69,11 +69,12 @@ except sqlite3.OperationalError:
     try:
         print("Creating a lego_kit table...")
         # Might need to fix this actually
-        # * complete_kit and for_sale should be a boolean
+        # * complete_kit should be a boolean value default as false
+        # * for_sale should be a boolean value default as false
         cur.execute("""CREATE TABLE IF NOT EXISTS lego_kit (
                     id INTEGER PRIMARY KEY,
                     name TEXT UNIQUE,
-                    number_duplicates INTEGER DEFAULT 1,
+                    number_sets INTEGER DEFAULT 1,
                     complete_kit INTEGER DEFAULT 0,
                     for_sale INTEGER DEFAULT 0,
                     box_location TEXT,
@@ -85,6 +86,15 @@ except sqlite3.OperationalError:
         msg += "Failed to create "
     msg += "new lego_kit table."
     print(msg)
+
+# For lego_parts
+# * id (part number) - unique
+# * name - unique
+
+# For parts_to_kits
+# * kit_id - foreign key
+# * part_id - foreign key
+# * number_of_parts - default at 1
 
 con.commit()
 con.close()

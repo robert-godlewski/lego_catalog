@@ -1,4 +1,5 @@
 Pipfile.lock
+.vscode
 *.csv
 db.sqlite3
 LegoDbMap.pdf
